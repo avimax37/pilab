@@ -2,6 +2,7 @@ import time
 import board
 import busio
 import digitalio
+import os
 
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
@@ -35,15 +36,16 @@ class MonitorModule:
         # Move left to right keeping track of the current x position for drawing shapes.
         x = 0
 
-
         # Load default font.
         font = ImageFont.load_default()
 
-        # Alternatively load a TTF font.  Make sure the .ttf font file is in the same directory as the python script!
         # Some other nice fonts to try: http://www.dafont.com/bitmap.php
         # Icons website: https://icons8.com/line-awesome
-        font = ImageFont.truetype('PixelOperator.ttf', 16)
-        icon_font= ImageFont.truetype('lineawesome-webfont.ttf', 18)
+        # Load fonts from the 'fonts' directory
+        font_path = os.path.join(os.path.dirname(__file__), "fonts", "PixelOperator.ttf")
+        icon_font_path = os.path.join(os.path.dirname(__file__), "fonts", "lineawesome-webfont.ttf")
+        font = ImageFont.truetype(font_path, 16)
+        icon_font = ImageFont.truetype(icon_font_path, 18)
 
         # Draw a black filled box to clear the image.
         draw.rectangle((0,0,width,height), outline=0, fill=0)
