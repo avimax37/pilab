@@ -9,6 +9,7 @@ import adafruit_ssd1306
 import subprocess
 
 from monitor_module import MonitorModule
+from resource_module import ResourceModule
 
 HEIGHT = 64
 WIDTH = 128
@@ -39,8 +40,10 @@ def test_display():
 
 if __name__ == "__main__":
     initialize_display()
-    monitormodule = MonitorModule()
+    #monitormodule = MonitorModule()
+    resourcemodule = ResourceModule()
     while True:
-        monitormodule.display_monitor(oled)
-        time.sleep(monitormodule.LOOPTIME)
+        #monitormodule.display_monitor(oled)
+        resourcemodule.resource_monitor(oled)
+        time.sleep(resourcemodule.LOOPTIME)
         print("Display updated")

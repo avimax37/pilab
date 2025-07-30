@@ -10,12 +10,12 @@ import adafruit_ssd1306
 import subprocess
 
 
-class MonitorModule:
+class ResourceModule:
     def __init__(self):
         # Display Refresh
         self.LOOPTIME = 1.0
 
-    def display_monitor(self, oled):
+    def resource_monitor(self, oled):
         # Create blank image for drawing.
         # Make sure to create image with mode '1' for 1-bit color.
         width = oled.width
@@ -46,6 +46,7 @@ class MonitorModule:
         icon_font_path = os.path.join(os.path.dirname(__file__), "fonts", "lineawesome-webfont.ttf")
         font = ImageFont.truetype(font_path, 18)
         icon_font = ImageFont.truetype(icon_font_path, 18)
+        icon_font_temp = ImageFont.truetype(icon_font_path, 24)
 
         # Draw a black filled box to clear the image.
         draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -75,9 +76,9 @@ class MonitorModule:
 
         # Icons 62609
         # Icon temperature
-        draw.text((x, top+8),    chr(0xf2c7),  font=icon_font, fill=255)
+        draw.text((x+93, top+12),    chr(0xf2c7),  font=icon_font_temp, fill=255)
         # Icon memory
-        draw.text((x+65, top+8), chr(0xf538),  font=icon_font, fill=255)
+        draw.text((x, top+8), chr(0xf538),  font=icon_font, fill=255)
         # Icon disk
         draw.text((x, top+28), chr(63426),  font=icon_font, fill=255)
         # Icon cpu
@@ -87,15 +88,16 @@ class MonitorModule:
 
         # Text
         # Text temperature
-        draw.text((x+19, top+8), str(Temperature,'utf-8'),  font=font, fill=255)
+        draw.text((x+82, top+38), str(Temperature,'utf-8'),  font=font, fill=255)
         # Text memory usage
-        draw.text((x+87, top+8), str(MemUsage,'utf-8'),  font=font, fill=255)
+        draw.text((x+19, top+8), str(MemUsage,'utf-8'),  font=font, fill=255)
         # Text Disk usage
         draw.text((x+19, top+28), str(Disk,'utf-8'),  font=font, fill=255)
         # Text cpu usage
         draw.text((x+19, top+48), cpu_str, font=font, fill=255)
         # Text IP address
         #draw.text((x+19, top+48), str(IP,'utf-8'),  font=font, fill=255)
+        draw.line((75, 0, 75, height - 1), fill=255)
 
         # Display image.
         oled.image(image)
