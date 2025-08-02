@@ -1,56 +1,73 @@
 import time
 import board
-import busio
-import adafruit_ssd1306
 import adafruit_dht
+import os
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 class DHT11Module:
-    def __init__(self, pin):
-        # Initialize the DHT11 sensor on the specified data pin
-        self.dht_device = adafruit_dht.DHT11(pin)
+    def __init__(self):
+        self.dht_device = adafruit_dht.DHT11(board.D17)
+        self.LOOPTIME = 1.0  # Delay between readings
 
-    def read_sensor(self):
+    def dht_display(self, oled):
+        width = oled.width
+        height = oled.height
+        image = Image.new('1', (width, height))
+        draw = ImageDraw.Draw(image)
+        draw.rectangle((0, 0, width, height), outline=0, fill=0)
+
+        padding = -2
+        top = padding
+        bottom = height - padding
+        x = 0
+
+        # Font loading
+        font_path = os.path.join(os.path.dirname(__file__), "fonts", "PixelOperator.ttf")
+        icon_font_path = os.path.join(os.path.dirname(__file__), "fonts", "lineawesome-webfont.ttf")
+
+        # font size 24
         try:
-            # Get temperature and humidity readings
+            font = ImageFont.truetype(font_path, 24)
+        except (IOError, OSError):
+            print("Warning: PixelOperator.ttf not found. Using default font.")
+            font = ImageFont.load_default()
+
+        # icon size 24
+        try:
+            icon_font = ImageFont.truetype(icon_font_path, 24)
+        except (IOError, OSError):
+            print("Warning: lineawesome-webfont.ttf not found. Using default font.")
+            icon_font = ImageFont.load_default()
+
+        try:
+            # Attempt sensor read
             temperature_c = self.dht_device.temperature
             humidity = self.dht_device.humidity
 
-            # Convert temperature to Fahrenheit
-            temperature_f = temperature_c * (9 / 5) + 32
+            if temperature_c is None or humidity is None:
+                raise RuntimeError("Sensor returned None")
 
-            return temperature_c, temperature_f, humidity
+            temp_text = f"{temperature_c:.1f}'C"
+            humidity_text = f"{humidity:.1f}% RH"
 
-        except RuntimeError as error:
-            # Handle sensor reading errors
-            print(f"Error reading sensor: {error.args[0]}")
-            return None, None, None
+        except RuntimeError as e:
+            temp_text = "Temp: --"
+            humidity_text = "Hum: --"
+            print(f"[DHT11 Error] {e}")
 
-    def display_readings(self, oled):
-        # Read sensor data
-        temperature_c, temperature_f, humidity = self.read_sensor()
+        # Draw icons
+        # Temperature icon
+        draw.text((x, top + 10), chr(0xf2c7), font=icon_font, fill=255)  
+        # Humidity icon
+        draw.text((x, top + 40), chr(0xf043), font=icon_font, fill=255)  
 
-        if temperature_c is not None and humidity is not None:
-            # Clear the display
-            oled.fill(0)
-            oled.show()
+        # Draw text values
+        draw.text((x + 25, top + 8), temp_text, font=font, fill=255)
+        draw.text((x + 25, top + 38), humidity_text, font=font, fill=255)
 
-            # Create a blank image for drawing
-            image = Image.new("1", (oled.width, oled.height))
-            draw = ImageDraw.Draw(image)
-
-            # Load a font (or use default)
-            font = ImageFont.load_default()
-
-            # Draw the readings on the image
-            draw.text((0, 0), f"Temp={temperature_c:.1f}ºC", font=font, fill=255)
-            draw.text((0, 10), f"Temp={temperature_f:.1f}ºF", font=font, fill=255)
-            draw.text((0, 20), f"Humidity={humidity:.1f}%", font=font, fill=255)
-
-            # Display the image on the OLED
-            oled.image(image)
-            oled.show()
-        else:
-            print("Failed to read sensor data.")
-
-    def close(self):
-        self.dht_device.exit()  # Clean up the DHT device
+        # Display update
+        oled.image(image)
+        oled.show()
+        time.sleep(self.LOOPTIME)
